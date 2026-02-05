@@ -1,8 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from app.db import get_connection
 from app.schemas.event import event
+from app.database.init_db import init_db
+from decimal import Decimal
+from sqlalchemy.orm import Session
+from datetime import datetime, UTC
+
+from app.database import get_db
+from app.schemas.order import OrderIngest, OrderResponse
+from app.models import Order
 
 app = FastAPI(title="Data Ingestion Service")
+
 
 @app.get("/health")
 def health():
@@ -32,3 +41,39 @@ def ingest_event(event: event):
         "message": "event received",
         "event": event
         }
+
+
+@app.post("/orders", response_model=OrderResponse)
+def create_order(order: OrderIngest, db: Session = Depends(get_db)):
+    """
+    Create a new order
+    """
+    
+    total_amount = Decimal(order.quantity) * order.price_per_unit
+    
+    db_order = Order(
+        order_id=order.order_id,
+        customer_id=order.customer_id,
+        product_id=order.product_id,
+        quantity=order.quantity,
+        price_per_unit=order.price_per_unit,
+        order_date=order.order_date,
+        status=order.status,
+        total_amount=total_amount,
+        created_at=datetime.now(UTC)
+    )
+    
+    db.add(db_order)
+    db.commit()
+    db.refresh(db_order)  
+    
+    return db_order
+
+
+
+@app.on_event("startup")
+def startup_event():
+    init_db()
+
+
+
