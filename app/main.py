@@ -9,9 +9,11 @@ from datetime import datetime, UTC
 from app.database import get_db
 from app.schemas.order import OrderIngest, OrderResponse
 from app.models import Order
+from app.api.endpoints import router as ingest_router
 
 app = FastAPI(title="Data Ingestion Service")
 
+app.include_router(ingest_router, tags=["ingestion"])
 
 @app.get("/health")
 def health():

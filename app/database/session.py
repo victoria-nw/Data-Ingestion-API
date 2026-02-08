@@ -13,8 +13,7 @@ engine = create_engine(
     DATABASE_URL,
     )
 
-Sessionmaker = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-SessionLocal = sessionmaker(...)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
