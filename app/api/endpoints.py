@@ -111,3 +111,31 @@ async def ingest_data(
         "failed": len(errors),
         "errors": errors[:10] if errors else []
     }
+
+
+
+
+
+@router.get("/orders")
+async def get_all_orders(skip: int = 0,
+                        limit: int = 10,
+                        customer_id: Optional[str] = None,
+                        status: Optional[str] = None,
+                        db: Session=Depends(get_db)):
+    query = db.query(Order)
+
+    if customer_id:
+        query = query.filter(Order.customer_id == customer_id)
+    if status:
+        query = query.filter(Order.status == status)
+    orders = db.query(Order).offset(skip).limit(limit).all()
+    return orders
+
+
+
+@router.get("/orders/{order_id}")
+def get_order(order_id: str, db: Session = Depends(get_db)):
+    order = db.query(Order).filter(Order.order_id == order_id).first()
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return order
