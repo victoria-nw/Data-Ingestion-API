@@ -6,6 +6,7 @@ import csv
 import io
 from datetime import datetime
 from decimal import Decimal
+from app.core.logging_config import logger
 
 from app.database import get_db
 from app.schemas.order import OrderIngest, OrderCreate
@@ -122,20 +123,34 @@ async def get_all_orders(skip: int = 0,
                         customer_id: Optional[str] = None,
                         status: Optional[str] = None,
                         db: Session=Depends(get_db)):
+    logger.info(f"Fetching orders - skip={skip}, limit={limit}, customer_id={customer_id}, status={status}")
+
     query = db.query(Order)
 
     if customer_id:
         query = query.filter(Order.customer_id == customer_id)
+        logger.debug(f"Filtering by customer_id: {customer_id}")
+
     if status:
         query = query.filter(Order.status == status)
+        logger.debug(f"Filtering by status: {status}")
+
     orders = db.query(Order).offset(skip).limit(limit).all()
+    logger.info(f"Retrieved {len(orders)} orders")
+
     return orders
 
 
 
 @router.get("/orders/{order_id}")
 def get_order(order_id: str, db: Session = Depends(get_db)):
+    logger.info(f"Fetching order with ID: {order_id}")
+
     order = db.query(Order).filter(Order.order_id == order_id).first()
+
     if order is None:
+        logger.warning(f"Order not found: {order_id}")
         raise HTTPException(status_code=404, detail="Order not found")
+
+    logger.info(f"Order found: {order_id}")
     return order

@@ -12,7 +12,7 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
 
-    order_id = Column(String, primary_key=True, index=True, nullable=False)
+    order_id = Column(String, primary_key=True, index=True, nullable=False, unique=True)
     customer_id = Column(String, nullable=False, index=True)
     product_id = Column(String, nullable=False, index=True)
 
