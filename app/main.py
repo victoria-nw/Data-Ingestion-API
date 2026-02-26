@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Response
 from app.db import get_connection
 from app.schemas.event import event
 from app.database.init_db import init_db
@@ -9,6 +9,8 @@ from app.core.logging_config import logger
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import IntegrityError
 from app.core.exception_handlers import (validation_exception_handler, integrity_error_handler, general_exception_handler)
+from sqlalchemy import text
+from app.core.metrics import generate_latest, CONTENT_TYPE_LATEST, orders_created_total
 
 from app.database import get_db
 from app.schemas.order import OrderIngest, OrderResponse
@@ -31,17 +33,20 @@ def health():
 
 
 @app.get("/db/health")
-def db_health():
+def db_health(db: Session = Depends(get_db)):
+    logger.info("Database health check requested")
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT 1;")
                 cur.fetchone()
-        return {"database": "ok"}
+        return {"database": "healthy"}
     except Exception as e:
+        logger.error(f"Database health check failed: {str(e)}")
         return {
-            "database": "error",
-            "detail": str(e)
+            "database": "unhealthy",
+            "detail": str(e),
+            "timestamp": datetime.now(UTC).isoformat()
         }
 
 
@@ -80,6 +85,8 @@ def create_order(order: OrderIngest, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(db_order)
 
+        orders_created_total.inc()
+
         logger.info("Order successfully created: {order.order_id}")
         return db_order
 
@@ -87,6 +94,12 @@ def create_order(order: OrderIngest, db: Session = Depends(get_db)):
         db.rollback()
         logger.error(f"Failed to create order {order.order_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+@app.get("/metrics")
+def metrics():
+    logger.info("Metrics requested")
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.on_event("startup")
