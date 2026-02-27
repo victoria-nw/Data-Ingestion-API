@@ -1,10 +1,18 @@
 from __future__ import annotations
 from datetime import UTC, datetime
 
-from sqlalchemy import Column, Numeric, Date, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    Column,
+    Numeric,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
-
 
 
 class Order(Base):

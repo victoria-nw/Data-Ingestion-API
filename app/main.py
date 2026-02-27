@@ -8,7 +8,11 @@ from datetime import datetime, UTC
 from app.core.logging_config import logger
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import IntegrityError
-from app.core.exception_handlers import (validation_exception_handler, integrity_error_handler, general_exception_handler)
+from app.core.exception_handlers import (
+    validation_exception_handler,
+    integrity_error_handler,
+    general_exception_handler,
+)
 from sqlalchemy import text
 from app.core.metrics import generate_latest, CONTENT_TYPE_LATEST, orders_created_total
 
@@ -25,11 +29,11 @@ app.add_exception_handler(Exception, general_exception_handler)
 
 app.include_router(ingest_router, tags=["ingestion"])
 
+
 @app.get("/health")
 def health():
     logger.info("Health check requested")
     return {"status": "ok"}
-
 
 
 @app.get("/db/health")
@@ -46,17 +50,13 @@ def db_health(db: Session = Depends(get_db)):
         return {
             "database": "unhealthy",
             "detail": str(e),
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
-
 
 
 @app.post("/events")
 def ingest_event(event: event):
-    return {
-        "message": "event received",
-        "event": event
-        }
+    return {"message": "event received", "event": event}
 
 
 @app.post("/orders", response_model=OrderResponse)
@@ -78,7 +78,7 @@ def create_order(order: OrderIngest, db: Session = Depends(get_db)):
             order_date=order.order_date,
             status=order.status,
             total_amount=total_amount,
-            created_at=datetime.now(UTC)
+            created_at=datetime.now(UTC),
         )
 
         db.add(db_order)
@@ -111,5 +111,6 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("Application shutting down")
+
 
 init_db()

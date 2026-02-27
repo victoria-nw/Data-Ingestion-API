@@ -7,6 +7,7 @@ import io
 from datetime import datetime
 from decimal import Decimal
 from app.core.logging_config import logger
+from app.core.metrics import ingestion_total, ingestion_errors_total
 
 from app.database import get_db
 from app.schemas.order import OrderIngest, OrderCreate
@@ -96,12 +97,14 @@ async def ingest_data(
             db.bulk_save_objects(db_orders)
             db.commit()
             inserted_count = len(db_orders)
+            ingestion_total.inc(inserted_count)
 
         except Exception as e:
             db.rollback()
             raise HTTPException(
                 status_code=500,
                 detail=f"Database error: {str(e)}"
+                ingestion_errors_total.inc(len(errors))
             )
 
     # RETURN
