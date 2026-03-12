@@ -30,15 +30,33 @@ Data ingestion API for order transactions with schema validation and quality enf
 
 ## Architecture
 ```
-Client Request
-    ↓
-FastAPI Endpoint (validates with Pydantic)
-    ↓
-Business Logic (calculates total_amount, timestamps)
-    ↓
-SQLAlchemy ORM (connection pooling)
-    ↓
-PostgreSQL Database
+┌──────────────┐
+│    Client    │ (Website, mobile app, etc.)
+└──────┬───────┘
+       │ HTTP Request
+       ↓
+┌──────────────┐
+│   FastAPI    │ (main.py, endpoints.py)
+│  Validation  │ (Uses schemas/order.py)
+└──────┬───────┘
+       │ Validated data
+       ↓
+┌──────────────┐
+│   Business   │ (Calculations, timestamps)
+│    Logic     │
+└──────┬───────┘
+       │ Prepared data
+       ↓
+┌──────────────┐
+│  SQLAlchemy  │ (database/session.py)
+│     ORM      │ (models/orders.py)
+└──────┬───────┘
+       │ SQL queries
+       ↓
+┌──────────────┐
+│  PostgreSQL  │ (Actual database)
+│   Database   │
+└──────────────┘
 ```
 
 ---
