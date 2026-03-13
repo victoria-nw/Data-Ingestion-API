@@ -28,27 +28,33 @@ http://localhost:8000/docs
 
 ### Project Structure
 ```
-data-ingestion-api/
 ├── app/
-│   ├── main.py                      # FastAPI application
+│   ├── main.py                      # FastAPI application, core endpoints
 │   ├── api/
-│   │   └── endpoints.py             # Additional endpoints
+│   │   ├── __init__.py
+│   │   └── endpoints.py             # Additional API endpoints
 │   ├── core/
+│   │   ├── __init__.py
 │   │   ├── logging_config.py        # Logging setup
 │   │   ├── metrics.py               # Prometheus metrics
-│   │   └── exception_handlers.py   # Error handlers
+│   │   └── exception_handlers.py   # Custom exception handlers
 │   ├── database/
-│   │   ├── base.py                  # SQLAlchemy base
-│   │   ├── session.py               # DB connection
-│   │   └── init_db.py               # Table creation
+│   │   ├── __init__.py
+│   │   ├── base.py                  # SQLAlchemy declarative base
+│   │   ├── session.py               # Database connection and pooling
+│   │   └── init_db.py               # Table creation script
 │   ├── models/
-│   │   └── orders.py                # Database models
+│   │   ├── __init__.py
+│   │   └── orders.py                # SQLAlchemy ORM models
 │   └── schemas/
-│       └── order.py                 # Pydantic schemas
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── .env
+│       ├── __init__.py
+│       ├── order.py                 # Pydantic validation schemas
+│       └── event.py                 # Event schemas
+├── Dockerfile                        # Multi-stage build for smaller images
+├── docker-compose.yml                # Service orchestration
+├── requirements.txt                  # Python dependencies
+├── .env                              # Environment variables (not in repo)
+├── .dockerignore                     # Files to exclude from Docker build
 └── README.md
 ```
 
@@ -537,4 +543,5 @@ psql -h localhost -U data_user data_service < backup.sql
 ```bash
 # Add to crontab
 0 2 * * * docker exec data_ingestion_db pg_dump -U data_user data_service > /backups/backup_$(date +\%Y\%m\%d).sql
+
 ```
