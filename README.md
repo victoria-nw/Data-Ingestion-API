@@ -38,13 +38,6 @@ http://localhost:8000/docs
 - **[API Reference](docs/API.md)** - Endpoint details with examples
 - **[Development & Deployment](docs/DEVELOPMENT.md)** - Setup and deployment guides
 
-## Project Status
-
-✅ Core CRUD operations  
-✅ Validation & error handling  
-✅ Monitoring & health checks  
-✅ Docker containerization  
-⚠️ Bulk ingestion endpoint (in progress)
 
 ## License
 
